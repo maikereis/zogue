@@ -1,0 +1,93 @@
+package ast
+
+import "zogue/token"
+
+type Node interface {
+	TokenLiteral() string
+}
+
+// Represents **statements** (e.g., `let x = 5`).
+// Embeds `Node` (inherits `TokenLiteral()`)
+// `statementNode()` is a **marker method** -- it does nothing but lets the compiler distinguish statements from expresssions.
+type Statement interface {
+	Node
+	statementNode() // Unexported method
+}
+
+// Represents **expressions** (e.g., `x + 5`, `"hello"`)
+// Similar to `Statement`, uses a marker method `expressionNode()`
+type Expression interface {
+	Node
+	expressionNode() // Unexported method
+}
+
+// This is the root of the AST.
+// A program is a list of statements.
+type Program struct {
+	Statements []Statement
+}
+
+// Returns the literal value of the first token in the program (typically for debugging or printing).
+// If no statements exist, return an empty string.
+func (p *Program) TokenLiteral() string {
+	if len(p.Statements) > 0 {
+		return p.Statements[0].TokenLiteral()
+	} else {
+		return ""
+	}
+}
+
+// Represents a `let` statement like:
+// let x = 5;
+// `Token`: stores the actual token.Token for the let keyword.
+// `Name`: the identifier being declared (e.g., `x`).
+// `Value`: the expression being assigned (e.g., `5`)
+type LetStatement struct {
+	Token token.Token
+	Name  *Identifier
+	Value Expression
+}
+
+// `statementNode()` marks this as a statement.
+// It is a marker method used to satisfy the Statement interface.
+// It doesn't do anything at runtime but allows the compiler to distinguish
+// LetStatement from expressions.
+func (ls *LetStatement) statementNode() {}
+
+// Returns the literal value of the token associated with this statement.
+// Tipically, this would be "let" for a LetStatement.
+func (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal }
+
+type Identifier struct {
+	Token token.Token // The token.IDENT token, which holds the literal identifier name.
+	Value string      // The name of the identifier (e.g., "x", "y").
+}
+
+// `expressionNode()` marks this as an expresson.
+// Like `statementNode()`, it's a marker used to satisfy the Expression interface.
+func (i *Identifier) expressionNode() {}
+
+// Returns the literal value of the code associated with the identifier.
+// For example, if the source code has `x`, this returns "x".
+func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
+
+/*
+let x = y;
+
+
+Program{
+	Statements: []Statement{
+		&LetStatement{
+			Token: token.Token{Type: LET, Literal: "let"},
+			Name: &Identifier{
+				Token: token.Token{Type: IDENT, Literal: "x"},
+				Value: "x",
+			},
+			Value: &Identifier{
+				Token: token.Token{Type: IDENT, Literal: "y"},
+				Value: "y",
+			},
+		},
+	},
+}
+*/
