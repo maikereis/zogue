@@ -1,9 +1,13 @@
 package ast
 
-import "zogue/token"
+import (
+	"bytes"
+	"zogue/token"
+)
 
 type Node interface {
 	TokenLiteral() string
+	String() string
 }
 
 // Represents **statements** (e.g., `let x = 5`).
@@ -25,6 +29,16 @@ type Expression interface {
 // A program is a list of statements.
 type Program struct {
 	Statements []Statement
+}
+
+func (p *Program) String() string {
+	var out bytes.Buffer
+
+	for _, s := range p.Statements {
+		out.WriteString(s.String())
+	}
+
+	return out.String()
 }
 
 // Returns the literal value of the first token in the program (typically for debugging or printing).
@@ -58,6 +72,22 @@ func (ls *LetStatement) statementNode() {}
 // Tipically, this would be "let" for a LetStatement.
 func (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal }
 
+func (ls *LetStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(ls.TokenLiteral() + " ")
+	out.WriteString(ls.Name.String())
+	out.WriteString(" = ")
+
+	if ls.Value != nil {
+		out.WriteString(ls.Value.String())
+	}
+
+	out.WriteString(";")
+
+	return out.String()
+}
+
 type Identifier struct {
 	Token token.Token // The token.IDENT token, which holds the literal identifier name.
 	Value string      // The name of the identifier (e.g., "x", "y").
@@ -70,6 +100,8 @@ func (i *Identifier) expressionNode() {}
 // Returns the literal value of the code associated with the identifier.
 // For example, if the source code has `x`, this returns "x".
 func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
+
+func (i *Identifier) String() string { return i.Value }
 
 /*
 let x = y;
@@ -109,3 +141,34 @@ func (rs *ReturnStatement) statementNode() {}
 // Returns the literal value of the token associated with this statement.
 // It will be the "return".
 func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
+
+func (rs *ReturnStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(rs.TokenLiteral() + " ")
+
+	if rs.ReturnValue != nil {
+		out.WriteString(rs.ReturnValue.String())
+	}
+
+	out.WriteString(";")
+
+	return out.String()
+}
+
+// Represents a **expression statement** (e.g., `x+10`)
+type ExpressionStatement struct {
+	Token      token.Token // the first token of the expression
+	Expression Expression
+}
+
+func (es *ExpressionStatement) statementNode() {}
+
+func (es *ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
+
+func (es *ExpressionStatement) String() string {
+	if es.Expression != nil {
+		return es.Expression.String()
+	}
+	return ""
+}
