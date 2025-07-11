@@ -104,7 +104,7 @@ type ReturnStatement struct {
 }
 
 // `statementNode()` marks this as an statement.
-func (rs *ReturnStatement) statementNode()
+func (rs *ReturnStatement) statementNode() {}
 
 // Returns the literal value of the token associated with this statement.
 // It will be the "return".
