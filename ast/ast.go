@@ -91,3 +91,21 @@ Program{
 	},
 }
 */
+
+// Represents a `return` statement like:
+// return 5;
+// or
+// return add(15);
+// `Token`: stores the actual token.Token for the return keyword.
+// `ReturnValue`: the expresssion being returned (e.g., `5`, `add(15)`in neovim how can i jump to next Uppercase consoant?)
+type ReturnStatement struct {
+	Token       token.Token // the 'return' token
+	ReturnValue Expression
+}
+
+// `statementNode()` marks this as an statement.
+func (rs *ReturnStatement) statementNode()
+
+// Returns the literal value of the token associated with this statement.
+// It will be the "return".
+func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
